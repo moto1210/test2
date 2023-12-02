@@ -9,6 +9,15 @@ const lit = require("./lit");
 const task = require("./task");
 const admin = require("firebase-admin"); //いじらなくていい
 const moment = require("moment");
+// All available logging functions
+const {
+  log,
+  info,
+  debug,
+  warn,
+  error,
+  write,
+} = require("firebase-functions/logger");
 
 const config = {
     channelSecret: 'badbdad140490d078833ba25e0bb1981',
@@ -21,7 +30,6 @@ admin.initializeApp({
   credential: admin.credential.applicationDefault(),
 });
 
-app.get('/', (req, res) => res.send('Hello LINE BOT!(GET)'));
 app.post('/webhook', line.middleware(config), (req, res) => {
     console.log(req.body.events);
     Promise
@@ -31,13 +39,12 @@ app.post('/webhook', line.middleware(config), (req, res) => {
 
 const client = new line.Client(config);
 
-let count = 0;
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
   const userId = event.source.userId;
-  if (userId == null) return Promise.resolve(null);
+  if (userId == null) return Promise.resolve(null); 
 //  const docRef = admin.firestore().collection("user").doc("ZMBoIxzGbG0m2ZHyZSLe");
 //  const doc = await docRef.get();
 
@@ -48,49 +55,30 @@ async function handleEvent(event) {
     await admin.firestore().collection("user").doc(userId).set({});
   }
 
-  const amount = Number(event.message.text);
-  if (!amount) return replyWithText("半角数字で入力してください", event);
-
-  await userRef
-//    .collection("user")
-    .doc(moment().utcOffset(0).format("YYYY-MM-DDTHH:mm:ss.SSSSSS"))
-    .set({
-      amount: amount,
-      burdenRate: 0.5,
+//  logger.log("abc");
+  const planname = event.message.text;
+  if(event.message.text === "予定"){
+    await userRef
+    .collection("plan")
+    .add({
+      planname: planname,
       paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
     });
-
-  if (event.message.text === "課題"){
-    return task.processTask(event);
-  }
-  
-  if(event.message.text === "予定"){
-    count = 1;
+    await userRef
+    .collection("status")
+    .doc("statusid")
+    .set({
+      status: "inputplan"
+    });
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: doc.data().kadai //実際に返信の言葉を入れる箇所
+      text: "予定を入力" //実際に返信の言葉を入れる箇所
       })
   }
-  if (event.message.text === "明日" && count === 1) {
-    count = 0;
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const month = tomorrow.getMonth() + 1;
-    const day = tomorrow.getDate();
-    
-    const responseText = `${month}月${day + 1}日21時`;
-    return client.replyMessage(event.replyToken, {
-    type: 'text',
-    text: responseText,
-    });
-    }
   return client.replyMessage(event.replyToken, {
     type: 'text',
-    text: event.message.text //実際に返信の言葉を入れる箇所
-    });
+    text: "予定また課題と入力してください" //実際に返信の言葉を入れる箇所
+    })
 }
 
 exports.app = functions.https.onRequest(app);
-
-
-
