@@ -7,6 +7,8 @@ const fs = require("fs");
 const plan = require("./plan");
 const lit = require("./lit");
 const task = require("./task");
+const admin = require("firebase-admin"); //いじらなくていい
+//const moment = reqire("moment"); //いじらなくていい
 
 const config = {
     channelSecret: 'badbdad140490d078833ba25e0bb1981',
@@ -14,6 +16,10 @@ const config = {
 };
 
 const app = express();
+
+admin.initializeApp({
+  credential: admin.credential.applicationDefault(),
+});
 
 app.get('/', (req, res) => res.send('Hello LINE BOT!(GET)'));
 app.post('/webhook', line.middleware(config), (req, res) => {
@@ -30,15 +36,20 @@ async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
+  const userId = event.source.userId;
+  if (userId == null) return Promise.resolve(null);
+  const docRef = admin.firestore().collection("user").doc("ZMBoIxzGbG0m2ZHyZSLe");
+  const doc = await docRef.get();
+
   if (event.message.text === "課題"){
-    return task.processTask();
+    return task.processTask(event);
   }
   
   if(event.message.text === "予定"){
     count = 1;
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: "予定を入力してください。例「12日15時」「15時」「明日」キャンセルの場合「キャンセル」" //実際に返信の言葉を入れる箇所
+      text: doc.data().kadai //実際に返信の言葉を入れる箇所
       })
   }
   if (event.message.text === "明日" && count === 1) {
