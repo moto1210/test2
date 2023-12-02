@@ -52,26 +52,38 @@ async function handleEvent(event) {
   if (event.message.text === '課題') {
     return task.handle_Task(event, client, userStates);
   }
-  if (statusData.status === null){
+
+  await userRef
+  .collection("status")
+  .doc("statusid")
+  .set({
+    status: "setting",
+    paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+  });
+  if (event.message.text === "予定" && statusData.status === "setting"){
     await userRef
     .collection("status")
     .doc("statusid")
     .set({
-      status: "setting",
+      status: "planing",
       paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
     });
-    }
-    else if (event.message.text === "予定" && statusData.status == "setting"){
-        await userRef
-        .collection("plan")
-        .add({
-          planname: planname,
-          paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-        });
-        return client.replyMessage(event.replyToken, {
-            type: 'text',
-            text: statusData.status + "の日程を入力"  //実際に返信の言葉を入れる箇所
-        });
+    return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: "イベント名を入力"  //実際に返信の言葉を入れる箇所
+    });
+  }
+  else if(statusData.status === "planing"){
+    await userRef
+    .collection("plan")
+    .add({
+      planname: planname,
+      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+    });
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: planname + "の日程を入力"  //実際に返信の言葉を入れる箇所
+  });
   }
   return client.replyMessage(event.replyToken, {
     type: 'text',
