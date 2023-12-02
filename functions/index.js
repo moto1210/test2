@@ -5,18 +5,10 @@ const express = require('express');
 const line = require('@line/bot-sdk');
 const fs = require("fs");
 const lit = require("./lit");
-const task = require("./task");
 const admin = require("firebase-admin"); //いじらなくていい
 const moment = require("moment");
-// All available logging functions
-const {
-  log,
-  info,
-  debug,
-  warn,
-  error,
-  write,
-} = require("firebase-functions/logger");
+const task = require("./task.js");
+const userStates = {};
 
 const config = {
     channelSecret: 'badbdad140490d078833ba25e0bb1981',
@@ -55,31 +47,36 @@ async function handleEvent(event) {
   const statusDoc = await userRef.collection("status").doc("statusid").get();
   const statusData = statusDoc.data();
 
-//  logger.log("abc");
   const planname = event.message.text;
-  if(event.message.text === "予定"){
-    await userRef
-    .collection("plan")
-    .add({
-      planname: planname,
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
+
+  if (event.message.text === '課題') {
+    return task.handle_Task(event, client, userStates);
+  }
+  if (statusData.status === null){
     await userRef
     .collection("status")
     .doc("statusid")
     .set({
-      status: "inputplan",
+      status: "setting",
       paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
     });
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: statusData.status  //実際に返信の言葉を入れる箇所
-      })
+    }
+    else if (event.message.text === "予定" && statusData.status == "setting"){
+        await userRef
+        .collection("plan")
+        .add({
+          planname: planname,
+          paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+        });
+        return client.replyMessage(event.replyToken, {
+            type: 'text',
+            text: statusData.status + "の日程を入力"  //実際に返信の言葉を入れる箇所
+        });
   }
   return client.replyMessage(event.replyToken, {
     type: 'text',
     text: "予定また課題と入力してください" //実際に返信の言葉を入れる箇所
-    })
+  })
 }
 
 exports.app = functions.https.onRequest(app);
