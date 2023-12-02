@@ -4,7 +4,6 @@ const functions = require('firebase-functions');
 const express = require('express');
 const line = require('@line/bot-sdk');
 const fs = require("fs");
-const plan = require("./plan");
 const lit = require("./lit");
 const task = require("./task");
 const admin = require("firebase-admin"); //いじらなくていい
@@ -39,21 +38,22 @@ app.post('/webhook', line.middleware(config), (req, res) => {
 
 const client = new line.Client(config);
 
+//ここまでは変わらず
+
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
   const userId = event.source.userId;
   if (userId == null) return Promise.resolve(null); 
-//  const docRef = admin.firestore().collection("user").doc("ZMBoIxzGbG0m2ZHyZSLe");
-//  const doc = await docRef.get();
-
   const userRef = admin.firestore().collection("user").doc(userId);
 
   const user = await userRef.get();
   if (!user.exists) {
     await admin.firestore().collection("user").doc(userId).set({});
   }
+  const statusDoc = await userRef.collection("status").doc("statusid").get();
+  const statusData = statusDoc.data();
 
 //  logger.log("abc");
   const planname = event.message.text;
@@ -68,11 +68,12 @@ async function handleEvent(event) {
     .collection("status")
     .doc("statusid")
     .set({
-      status: "inputplan"
+      status: "inputplan",
+      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
     });
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: "予定を入力" //実際に返信の言葉を入れる箇所
+      text: statusData.status  //実際に返信の言葉を入れる箇所
       })
   }
   return client.replyMessage(event.replyToken, {
