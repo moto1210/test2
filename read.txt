@@ -1,0 +1,38 @@
+デプロイ
+・firebase login
+・firebase deploy --only "functions,hosting"
+
+基本この二つだけを使用
+
+・git branch
+ブランチの場所を確認
+
+・git branch 名前
+「名前」ブランチを作成
+
+・git checkout 名前
+「名前」ブランチに移動
+
+pushまでのステップ
+１，git add .
+アドする
+
+２，git commit -m "作成した内容"
+コミットする
+
+３，git push origin 名前
+「名前」のブランチをプッシュ
+
+４，Webページの「<>code」をクリック 「branch」をクリック pushが成功していた場合「Your branches」に先ほど作ったブランチ名が出てくる
+
+５，「new pull reqest」をクリック
+
+６，base:main ← compare:ブランチ名 であることを確認
+
+７，「create pull request」をクリック
+
+８，マージする時教えて欲しい
+
+９，マージ終わった後「git clone URL」でまたメインを新しく引っ張ってくる
+
+１０，ブランチを切って再開
