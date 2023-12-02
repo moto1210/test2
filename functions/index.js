@@ -8,7 +8,7 @@ const plan = require("./plan");
 const lit = require("./lit");
 const task = require("./task");
 const admin = require("firebase-admin"); //いじらなくていい
-//const moment = reqire("moment"); //いじらなくていい
+const moment = require("moment");
 
 const config = {
     channelSecret: 'badbdad140490d078833ba25e0bb1981',
@@ -38,8 +38,27 @@ async function handleEvent(event) {
   }
   const userId = event.source.userId;
   if (userId == null) return Promise.resolve(null);
-  const docRef = admin.firestore().collection("user").doc("ZMBoIxzGbG0m2ZHyZSLe");
-  const doc = await docRef.get();
+//  const docRef = admin.firestore().collection("user").doc("ZMBoIxzGbG0m2ZHyZSLe");
+//  const doc = await docRef.get();
+
+  const userRef = admin.firestore().collection("user").doc(userId);
+
+  const user = await userRef.get();
+  if (!user.exists) {
+    await admin.firestore().collection("user").doc(userId).set({});
+  }
+
+  const amount = Number(event.message.text);
+  if (!amount) return replyWithText("半角数字で入力してください", event);
+
+  await userRef
+//    .collection("user")
+    .doc(moment().utcOffset(0).format("YYYY-MM-DDTHH:mm:ss.SSSSSS"))
+    .set({
+      amount: amount,
+      burdenRate: 0.5,
+      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+    });
 
   if (event.message.text === "課題"){
     return task.processTask(event);
