@@ -8,7 +8,7 @@ const lit = require("./lit");
 const admin = require("firebase-admin"); //いじらなくていい
 const moment = require("moment");
 const task = require("./task.js");
-const userStates = {};
+// const userStates = {};
 
 const config = {
     channelSecret: 'badbdad140490d078833ba25e0bb1981',
@@ -46,20 +46,23 @@ async function handleEvent(event) {
   }
   const statusDoc = await userRef.collection("status").doc("statusid").get();
   const statusData = statusDoc.data();
+  const status_tDoc = await userRef.collection("status_t").doc("statusid").get();
+  const status_tData = status_tDoc.data();
 
   const planname = event.message.text;
 
   if (event.message.text === '課題') {
-    return task.handle_Task(event, client, userStates);
+    await userRef
+    .collection("status_t")
+    .doc("statusid")
+    .set({
+      stage: "subject",
+      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+    });
+    return task.handle_Task(event, client, status_tData);
   }
-  // if (statusData.status === null){
-  //   // await userRef
-  //   // .collection("status")
-  //   // .doc("statusid")
-  //   // .set({
-  //   //   status: "setting",
-  //   //   paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-  //   // });
+  
+
   if (event.message.text === "予定"){
   await userRef
   .collection("status")

@@ -1,30 +1,47 @@
 function handle_Task(event, client, userStates) {
-  const userId = event.source.userId;
-  if (!userStates[userId]) {
-      userStates[userId] = { stage: 'idle' };
-  }
-
-  switch (userStates[userId].stage) {
-      case 'idle':
-          userStates[userId] = { stage: 'waiting_for_subject' };
-          return client.replyMessage(event.replyToken, { type: 'text', text: '科目名を入力してください。' });
-
-      case 'waiting_for_subject':
-          // 科目名を保存
-          userStates[userId] = { ...userStates[userId], stage: 'waiting_for_assignment', subject: event.message.text };
-          return client.replyMessage(event.replyToken, { type: 'text', text: '課題の内容を入力してください。' });
-
-      case 'waiting_for_assignment':
+    const userId = event.source.userId;
+    if (userId == null) return Promise.resolve(null); 
+    const userRef = admin.firestore().collection("user").doc(userId);
+  
+    const user = userRef.get();
+    if (!user.exists) {
+      admin.firestore().collection("user").doc(userId).set({});
+    }
+    const planname = event.message.text;
+//   const userId = event.source.userId;
+//   if (!userStates[userId]) {
+//       userStates[userId] = { stage: 'idle' };
+//   }
+  switch (status_tData.stage) {
+      case "subject":
+        userRef
+        .collection("status_t")
+        .doc("statusid")
+        .set({
+          stage: "info",
+          paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+        });
+          return client.replyMessage(event.replyToken, { type: 'text', text: '課題名を入力してください。' });
+      case "info":
           // 課題の内容を保存
-          userStates[userId] = { ...userStates[userId], stage: 'waiting_for_due_date', assignment: event.message.text };
+        userRef
+        .collection("status_t")
+        .doc("statusid")
+        .set({
+            stage: "wait_date",
+            paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+          });
           return client.replyMessage(event.replyToken, { type: 'text', text: '提出日時を入力してください。' });
-
-      case 'waiting_for_due_date':
-          // 提出日時を保存し、課題データを保存するロジックを追加
-          userStates[userId] = { ...userStates[userId], due_date: event.message.text, stage: 'idle' };
+      case "wait_date":
+        userRef
+        .collection("status_t")
+        .doc("statusid")
+        .set({
+          stage: "subject",
+          paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+        });
           // ここで課題データを保存するロジックを追加
-          return client.replyMessage(event.replyToken, { type: 'text', text: '課題が追加されました。' });
-
+          return client.replyMessage(event.replyToken, { type: 'text', text: "成功" });
       default:
           return client.replyMessage(event.replyToken, { type: 'text', text: 'エラーが発生しました。' });
   }
