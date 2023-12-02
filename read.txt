@@ -36,3 +36,10 @@ pushまでのステップ
 ９，マージ終わった後「git clone URL」でまたメインを新しく引っ張ってくる
 
 １０，ブランチを切って再開
+
+
+オウム返し
+  return client.replyMessage(event.replyToken, {
+    type: 'text',
+    text: event.message.text //実際に返信の言葉を入れる箇所
+    });
