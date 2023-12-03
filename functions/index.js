@@ -51,7 +51,58 @@ async function handleEvent(event) {
 
   const inputText = event.message.text;
 
-  if (event.message.text === '課題') {
+  if (event.message.text === '課題' ||  event.message.text === "予定") {
+
+
+  if (status_tData.stage === "subname" && event.message.text === "予定"){
+    await userRef
+    .collection("status")
+    .doc("statusid")
+    .set({
+      status: "planing",
+      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+    });
+    if(statusData.status === "planing"){
+      const newPlanRef = await userRef.collection("plan").add({
+        planname: inputText,
+        paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+      });
+      const newPlanId = newPlanRef.id;
+      const planDoc = await userRef.collection("plan").doc(newPlanId).get();
+      const planData = planDoc.data();
+      await userRef
+      .collection("status")
+      .doc("statusid")
+      .set({
+        status: "dateing",
+        paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+      });
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text:  planData.planname + "の日程を入力　例「5日12時」"  //実際に返信の言葉を入れる箇所
+      });
+    }
+    if (statusData.status === "dateing"){
+      const newDateRef = await userRef.collection("date").add({
+        date: inputText,
+        paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+      });
+      const newDateId = newDateRef.id;
+      const dateDoc = await userRef.collection("date").doc(newDateId).get();
+      const dateData = dateDoc.data();
+      await userRef
+      .collection("status")
+      .doc("statusid")
+      .set({
+        status: "setting",
+        paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+      });
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: dateData.date + "に通知をおくるね！！"//実際に返信の言葉を入れる箇所
+      })
+    }
+  }
   await userRef
   .collection("status_t")
   .doc("statusid")
@@ -64,8 +115,6 @@ async function handleEvent(event) {
     text:  "課題名を入力"  //実際に返信の言葉を入れる箇所
   });
   }
-
-
   if (status_tData.stage === "subname"){
     const newsubPlanRef = await userRef.collection("subplan").add({
       sub: inputText,
@@ -112,72 +161,10 @@ async function handleEvent(event) {
       stage: "subname",
       paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
     });
-    await userRef
-    .collection("status_t")
-    .doc("statusid")
-    .set({
-      stage: "subdate",
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
     return client.replyMessage(event.replyToken, {
       type: 'text',
       text:  subplanData.sub + subplanData.date_p  //実際に返信の言葉を入れる箇所
     });
-  }
-
-  if (event.message.text === "予定"){
-  await userRef
-  .collection("status")
-  .doc("statusid")
-  .set({
-    status: "planing",
-    paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-  });
-  return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text:  "イベント名を入力"  //実際に返信の言葉を入れる箇所
-  });
-  }
-  if(statusData.status === "planing"){
-    const newPlanRef = await userRef.collection("plan").add({
-      planname: inputText,
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
-    const newPlanId = newPlanRef.id;
-    const planDoc = await userRef.collection("plan").doc(newPlanId).get();
-    const planData = planDoc.data();
-
-    await userRef
-    .collection("status")
-    .doc("statusid")
-    .set({
-      status: "dateing",
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text:  planData.planname + "の日程を入力　例「5日12時」"  //実際に返信の言葉を入れる箇所
-    });
-  }
-  if (statusData.status === "dateing"){
-    const newDateRef = await userRef.collection("date").add({
-      date: inputText,
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
-    const newDateId = newDateRef.id;
-    const dateDoc = await userRef.collection("date").doc(newDateId).get();
-    const dateData = dateDoc.data();
-    await userRef
-    .collection("status")
-    .doc("statusid")
-    .set({
-      status: "setting",
-      paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
-    });
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: dateData.date + "に通知をおくるね！！"//実際に返信の言葉を入れる箇所
-    })
   }
   if (event.message.text === "もとた"){
     return client.replyMessage(event.replyToken, {
