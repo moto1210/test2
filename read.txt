@@ -33,7 +33,7 @@ pushまでのステップ
 
 ８，マージする時教えて欲しい
 
-９，マージ終わった後「git clone URL」でまたメインを新しく引っ張ってくる
+９，マージ終わった後「git pull origin main」でまたメインを新しく引っ張ってくる
 
 １０，ブランチを切って再開
 
@@ -43,3 +43,30 @@ pushまでのステップ
     type: 'text',
     text: event.message.text //実際に返信の言葉を入れる箇所
     });
+
+
+
+      case "info":
+          // 科目名を保存
+          userRef
+          .collection("status_t")
+          .doc("statusid")
+          .set({
+            stage: "wait_date",
+            paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+          });
+          return client.replyMessage(event.replyToken, { type: 'text', text: '課題の内容を入力してください。' });
+
+
+      task.js 40~50  
+      case "info":
+          // 科目名を保存
+          userRef
+          .collection("status_t")
+          .doc("statusid")
+          .set({
+            stage: "wait_date",
+            paymentDate: admin.firestore.Timestamp.fromDate(moment().toDate()),
+          });
+          return client.replyMessage(event.replyToken, { type: 'text', text: '課題の内容を入力してください。' });
+
