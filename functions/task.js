@@ -1,3 +1,4 @@
+//課題を管理する関数
 function handle_Task(event, client, userStates) {
   const userId = event.source.userId;
   if (!userStates[userId]) {

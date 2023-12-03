@@ -1,3 +1,4 @@
+//予定を管理する関数
 async function handle_plan(event, client, admin) {
     const userId = event.source.userId;
     const userRef = admin.firestore().collection("users").doc(userId);
